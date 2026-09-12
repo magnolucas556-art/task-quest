@@ -1,0 +1,63 @@
+
+
+# Environment & Secrets (AIOX)
+.env
+.env.local
+.env.*.local
+.env.backup.*
+*.key
+*.pem
+
+# Temporary Backups (AIOX)
+*.backup.*
+*.bak
+*.orig
+*.rej
+*~
+*.tmp
+*.temp
+
+# Dependencies (AIOX)
+node_modules/
+
+# Build, Coverage & Caches (AIOX)
+dist/
+build/
+coverage/
+.nyc_output/
+.cache/
+.npm/
+.pnpm-store/
+.eslintcache
+
+# Local Logs and Runtime Reports (AIOX)
+*.log
+logs/
+.ai/logs/
+.ai/debug-log.md
+.aiox/qa-reports/
+.aiox/qa-status.json
+.aiox/project-status.yaml
+.aiox/handoffs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# IDE & OS (AIOX)
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+
+# Generated Projections for IDEs Not Enabled in This Project
+.antigravity/
+.cursor/
+.gemini/
+.kimi/
+.github/agents/
+
+# AIOX Local (AIOX)
+.aiox-core/local/
+.claude/settings.local.json
+.aiox/install-log.txt

@@ -1,0 +1,18 @@
+{
+  "name": "task-quest",
+  "version": "1.0.0",
+  "description": "MVP acadêmico de gerenciamento de tarefas com gamificação",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "eslint js tests",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "node --test",
+    "build": "node --check js/domain.js && node --check tests/domain.test.js",
+    "validate:port-denylist": "node -e \"const check=require('./.aiox-core/core/doctor/checks/port-denylist'); check.run({projectRoot:process.cwd()}).then(result=>{console.log(result.message); process.exitCode=result.status==='PASS'?0:1})\""
+  },
+  "devDependencies": {
+    "eslint": "^10.10.0",
+    "typescript": "^7.0.2"
+  }
+}

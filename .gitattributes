@@ -1,0 +1,19 @@
+* text=auto
+
+# Markdown uses two trailing spaces for explicit line breaks.
+*.md text eol=lf whitespace=-blank-at-eol
+
+# AIOX runtime and enabled IDE projections are distributed artifacts.
+# Preserve their content without treating upstream formatting as a project defect.
+.aiox-core/** text eol=lf whitespace=-blank-at-eol,-blank-at-eof
+.claude/** text eol=lf whitespace=-blank-at-eol,-blank-at-eof
+.codex/** text eol=lf whitespace=-blank-at-eol,-blank-at-eof
+.grok/** text eol=lf whitespace=-blank-at-eol,-blank-at-eof
+
+# Task Quest source and configuration stay normalized across platforms.
+*.js text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.css text eol=lf
+*.html text eol=lf

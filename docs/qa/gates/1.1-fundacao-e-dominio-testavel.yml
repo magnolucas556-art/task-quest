@@ -1,0 +1,77 @@
+schema: 1
+story: '1.1'
+story_title: 'Fundação e domínio testável'
+gate: PASS
+status_reason: 'Os oito critérios de aceite estão implementados e rastreados por testes; todos os quality gates passam. As recomendações restantes são de baixo risco e não bloqueiam o MVP.'
+reviewer: 'Quinn (Test Architect)'
+reviewed_revision: 'working-tree:sha256:fbb5595ca7470de3f6b1b8fa61321ded53fffdd9ee21837deb886051fa27d00a'
+updated: '2026-09-11T19:09:52Z'
+expires: '2026-09-25T19:09:52Z'
+
+top_issues:
+  - id: 'REL-001'
+    severity: low
+    finding: '`totalXp` usa `Number.isInteger`, que aceita valores fora da faixa de inteiros seguros do JavaScript.'
+    suggested_action: 'Antes da integração de persistência, considerar `Number.isSafeInteger` e adicionar um teste de limite numérico.'
+    suggested_owner: dev
+  - id: 'TEST-001'
+    severity: low
+    finding: 'Alguns ramos defensivos, como `tasks` não ser array e IDs vazios nas operações além da criação, não possuem teste direto.'
+    suggested_action: 'Adicionar testes direcionados se a equipe ampliar a cobertura defensiva na Story 1.2.'
+    suggested_owner: dev
+
+waiver:
+  active: false
+
+quality_score: 100
+
+evidence:
+  tests_reviewed: 22
+  coverage:
+    lines: 95.51
+    branches: 90.20
+    functions: 100.00
+  risks_identified: 2
+  trace:
+    ac_covered: [1, 2, 3, 4, 5, 6, 7, 8]
+    ac_gaps: []
+  quality_gates:
+    lint: PASS
+    typecheck: PASS
+    test: PASS
+    build: PASS
+
+risk_summary:
+  critical: 0
+  high: 0
+  medium: 0
+  low: 2
+  highest_score: 2
+
+nfr_validation:
+  security:
+    status: PASS
+    notes: 'Entradas são validadas; o domínio não acessa DOM, rede, armazenamento, credenciais ou execução dinâmica.'
+  performance:
+    status: PASS
+    notes: 'Operações lineares sobre a coleção são proporcionais ao volume pessoal previsto para o MVP.'
+  reliability:
+    status: PASS
+    notes: 'Invariantes, imutabilidade, idempotência e limites de nível possuem cobertura; permanece apenas o endurecimento opcional para inteiros seguros.'
+  maintainability:
+    status: PASS
+    notes: 'API pequena, funções explícitas, JSDoc, constantes nomeadas e responsabilidades alinhadas à arquitetura.'
+
+recommendations:
+  immediate: []
+  future:
+    - action: 'Considerar `Number.isSafeInteger` para `totalXp` antes de consumir dados persistidos.'
+      refs: ['js/domain.js:322']
+    - action: 'Cobrir diretamente os ramos defensivos ainda não exercitados se a Story 1.2 depender deles.'
+      refs: ['tests/domain.test.js']
+
+review_notes:
+  coderabbit: 'Não executado: desabilitado na Story 1.1 e na configuração efetiva do projeto; revisão manual aplicada.'
+  code_intelligence: 'Não executado: nenhum provider disponível.'
+  dependency_audit: 'Nenhuma dependência de produção. O audit online não foi repetido devido à indisponibilidade do endpoint na rede restrita.'
+  framework_warning: 'O checklist qa-master-checklist.md referenciado pelo workflow não existe nesta instalação; foram usadas as regras padrão completas do workflow de revisão.'

@@ -1,0 +1,48 @@
+{
+  "story": "1.1",
+  "reviewedAt": "2026-09-11T19:09:52Z",
+  "reviewer": "Quinn (Test Architect)",
+  "reviewedRevision": "working-tree:sha256:fbb5595ca7470de3f6b1b8fa61321ded53fffdd9ee21837deb886051fa27d00a",
+  "verdict": "PASS",
+  "qualityScore": 100,
+  "acceptanceCriteria": {
+    "covered": [1, 2, 3, 4, 5, 6, 7, 8],
+    "gaps": []
+  },
+  "tests": {
+    "reviewed": 22,
+    "passed": 22,
+    "failed": 0,
+    "coverage": {
+      "lines": 95.51,
+      "branches": 90.2,
+      "functions": 100
+    }
+  },
+  "qualityGates": {
+    "lint": "PASS",
+    "typecheck": "PASS",
+    "test": "PASS",
+    "build": "PASS"
+  },
+  "issues": [
+    {
+      "id": "REL-001",
+      "severity": "low",
+      "summary": "Considerar Number.isSafeInteger para totalXp antes da persistência."
+    },
+    {
+      "id": "TEST-001",
+      "severity": "low",
+      "summary": "Alguns ramos defensivos não possuem teste direto."
+    }
+  ],
+  "nfr": {
+    "security": "PASS",
+    "performance": "PASS",
+    "reliability": "PASS",
+    "maintainability": "PASS"
+  },
+  "gateFile": "docs/qa/gates/1.1-fundacao-e-dominio-testavel.yml",
+  "lifecycleTransition": "InReview -> Done"
+}
