@@ -5,6 +5,12 @@ export default [
       ecmaVersion: "latest",
       sourceType: "module",
       globals: {
+        Document: "readonly",
+        Element: "readonly",
+        HTMLButtonElement: "readonly",
+        HTMLFormElement: "readonly",
+        HTMLInputElement: "readonly",
+        HTMLElement: "readonly",
         structuredClone: "readonly",
       },
     },

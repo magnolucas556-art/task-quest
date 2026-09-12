@@ -248,6 +248,10 @@ quality_gate_tools:
 - Pre-PR: integração completa, regressão das regras e execução dos critérios do PRD.
 - Pre-Deployment: não aplicável ao épico acadêmico local.
 
+### Encerramento administrativo
+
+- Story 1.3 concluída com gate de QA `PASS`; status `Done` preservado. [closure-key: 1.3:digest:working-tree:sha256:972b47295ac15f2fec4a4464f2007dd45220e0f2fb09bd134485d13c9e1be43a]
+
 ## Compatibilidade
 
 - A aplicação continuará integralmente estática.
@@ -290,17 +294,17 @@ Nenhuma operação remota, exclusão de dados ou rollback será executado pelo P
 
 ## Definition of Done do épico
 
-- [ ] As três stories estão concluídas e aprovadas.
-- [ ] Os 18 critérios de aceite do PRD foram atendidos.
-- [ ] As regras de XP e nível foram verificadas automaticamente.
-- [ ] Persistência válida sobrevive ao recarregamento.
-- [ ] Falhas de armazenamento não interrompem a sessão.
-- [ ] A interface foi validada em cenários de desktop e mobile.
-- [ ] O fluxo principal foi validado por teclado.
-- [ ] Não existem funcionalidades fora do PRD.
-- [ ] Não existem dependências de produção, backend ou integrações externas.
-- [ ] Todos os quality gates do projeto passam.
-- [ ] Documentação, checklists e listas de arquivos estão atualizados.
+- [x] As três stories estão concluídas e aprovadas.
+- [x] Os 18 critérios de aceite do PRD foram atendidos.
+- [x] As regras de XP e nível foram verificadas automaticamente.
+- [x] Persistência válida sobrevive ao recarregamento.
+- [x] Falhas de armazenamento não interrompem a sessão.
+- [x] A interface foi validada em cenários de desktop e mobile.
+- [x] O fluxo principal foi validado por teclado.
+- [x] Não existem funcionalidades fora do PRD.
+- [x] Não existem dependências de produção, backend ou integrações externas.
+- [x] Todos os quality gates do projeto passam.
+- [x] Documentação, checklists e listas de arquivos estão atualizados.
 
 ## Handoff para o Scrum Master
 
