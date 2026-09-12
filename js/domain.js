@@ -322,7 +322,7 @@ function hasOnlyKeys(value, keys) {
 function isValidTotalXp(totalXp) {
   return (
     typeof totalXp === "number" &&
-    Number.isInteger(totalXp) &&
+    Number.isSafeInteger(totalXp) &&
     totalXp >= 0 &&
     totalXp % XP_PER_TASK === 0
   );

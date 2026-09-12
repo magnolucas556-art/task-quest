@@ -180,6 +180,10 @@ quality_gate_tools:
 - Pre-PR: separação entre domínio, persistência e coordenação; ausência de dependências circulares.
 - Pre-Deployment: não aplicável.
 
+### Encerramento administrativo
+
+- Story 1.2 concluída com gate de QA `PASS`; status `Done` preservado. [closure-key: 1.2:digest:working-tree:sha256:c8a37d7bfdea5ef997f8471924f5908a48ff2ace5407e8fcf3261bf26d5016a8]
+
 ## Story 1.3 — Interface responsiva e integração final
 
 ### Objetivo

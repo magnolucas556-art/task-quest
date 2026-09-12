@@ -215,6 +215,7 @@ test("validateState rejects malformed app state and invalid XP", () => {
     { schemaVersion: 1, totalXp: -10, tasks: [] },
     { schemaVersion: 1, totalXp: 5, tasks: [] },
     { schemaVersion: 1, totalXp: 10.5, tasks: [] },
+    { schemaVersion: 1, totalXp: Number.MAX_SAFE_INTEGER + 1, tasks: [] },
     { schemaVersion: 1, totalXp: 0, tasks: [], extra: true },
   ];
 
@@ -266,7 +267,7 @@ test("gamification derives level and current-cycle progress at all required boun
 });
 
 test("gamification rejects invalid XP values", () => {
-  for (const totalXp of [-10, 5, 10.5, "100", null]) {
+  for (const totalXp of [-10, 5, 10.5, Number.MAX_SAFE_INTEGER + 1, "100", null]) {
     assert.deepEqual(getGamification(totalXp), {
       valid: false,
       error: DOMAIN_ERRORS.INVALID_STATE,

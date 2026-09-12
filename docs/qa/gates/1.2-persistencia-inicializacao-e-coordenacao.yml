@@ -1,0 +1,77 @@
+schema: 1
+story: '1.2'
+story_title: 'Persistência, inicialização e coordenação'
+gate: PASS
+status_reason: 'Os oito critérios de aceite estão implementados e rastreados; os 39 testes e todos os quality gates obrigatórios passam. As validações restantes exigem navegador real e pertencem às etapas posteriores de integração/QA.'
+reviewer: 'Quinn (Test Architect)'
+reviewed_revision: 'working-tree:sha256:c8a37d7bfdea5ef997f8471924f5908a48ff2ace5407e8fcf3261bf26d5016a8'
+updated: '2026-09-12T13:45:55Z'
+expires: '2026-09-26T13:45:55Z'
+
+top_issues: []
+
+waiver:
+  active: false
+
+quality_score: 100
+
+evidence:
+  tests_reviewed: 39
+  coverage:
+    lines: 95.68
+    branches: 90.18
+    functions: 100.00
+  risks_identified: 2
+  trace:
+    ac_covered: [1, 2, 3, 4, 5, 6, 7, 8]
+    ac_gaps: []
+  quality_gates:
+    lint: PASS
+    typecheck: PASS
+    test: PASS
+    build: PASS
+    validate_port_denylist: PASS
+
+risk_summary:
+  critical: 0
+  high: 0
+  medium: 0
+  low: 2
+  highest_score: 2
+
+nfr_validation:
+  security:
+    status: PASS
+    notes: 'O código não acessa rede, DOM ou credenciais; os documentos persistidos são validados integralmente antes de uso ou gravação.'
+  performance:
+    status: PASS
+    notes: 'Busca linear de tarefas e persistência do documento completo são proporcionais ao volume pessoal previsto para o MVP acadêmico.'
+  reliability:
+    status: PASS
+    notes: 'Corrupção integral, indisponibilidade e falhas de leitura/escrita têm fallback seguro; o estado em memória é preservado e a recuperação posterior está coberta.'
+  maintainability:
+    status: PASS
+    notes: 'Módulos pequenos, grafo acíclico, operações explícitas, estados de retorno nomeados, JSDoc e testes mantêm as responsabilidades compreensíveis.'
+
+recommendations:
+  immediate: []
+  future:
+    - action: 'Validar `crypto.randomUUID()` nos navegadores oficialmente suportados quando a interface for integrada.'
+      refs: ['js/app.js', 'docs/ARCHITECTURE.md#71-geração-de-id']
+    - action: 'Executar testes exploratórios em navegador real para indisponibilidade, quota e recuperação do LocalStorage na etapa de QA da aplicação integrada.'
+      refs: ['js/storage.js', 'docs/ARCHITECTURE.md#18-tratamento-de-falhas-no-localstorage']
+
+review_notes:
+  coderabbit: 'Não executado e não bloqueante: integração desabilitada e WSL/CLI indisponível nesta máquina; revisão manual aplicada, sem instalar ferramentas adicionais.'
+  code_intelligence: 'Não executado: nenhum provider disponível.'
+  framework_warning: 'O checklist qa-master-checklist.md referenciado pelo workflow não existe nesta instalação; foram aplicadas as regras padrão completas do workflow de revisão.'
+  revision_method: 'SHA256 da concatenação UTF-8, em ordem lexical, de caminho + LF + SHA256 dos bytes do arquivo + LF.'
+  reviewed_files:
+    - 'js/app.js'
+    - 'js/domain.js'
+    - 'js/storage.js'
+    - 'package.json'
+    - 'tests/app.test.js'
+    - 'tests/domain.test.js'
+    - 'tests/storage.test.js'
+    - 'tsconfig.json'

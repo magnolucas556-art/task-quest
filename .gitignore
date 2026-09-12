@@ -58,6 +58,7 @@ Thumbs.db
 .github/agents/
 
 # AIOX Local (AIOX)
+.aiox/config.yaml
 .aiox-core/local/
 .claude/settings.local.json
 .aiox/install-log.txt

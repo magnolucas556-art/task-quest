@@ -1,7 +1,7 @@
 # Decision Log Index
 
 *Automatically generated decision log index*
-*Last updated: 2026-09-11T18:55:23.024Z*
+*Last updated: 2026-09-12T13:18:24.268Z*
 
 ---
 
@@ -14,11 +14,12 @@
 
 ## Decision Logs
 
-Total logs: 1
+Total logs: 2
 
 | Story ID | Date | Agent | Status | Duration | Decisions | Log File |
 |----------|------|-------|--------|----------|-----------|----------|
-| 1.1 | 2026-09-11 | dev | completed | 11m 30s | 3 | [View](decision-log-1.1.md) |
+| 1.2 | 2026-09-12 | dev | completed | 10m 41s | 3 | [View](decision-log-1.2.md) |
+| 1.1 | 2026-09-11 | dev | completed | 11m 30s | 3 | [View](../decision-log-1.1.md) |
 
 ---
 
