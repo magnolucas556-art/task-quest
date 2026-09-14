@@ -1,0 +1,29 @@
+schema: 1
+story: '2.2'
+story_title: 'Prioridades, prazos e migração V1 para V2'
+gate: PASS
+status_reason: 'Os sete critérios foram cobertos; validação, migração única, XP histórico e persistência defensiva não apresentam achados bloqueantes.'
+reviewer: 'Quinn (Test Architect)'
+reviewed_revision: 'commit:c8f226870d7846c5f301fde71f7a6094641c4287'
+updated: '2026-09-14T19:02:44Z'
+expires: '2026-09-28T19:02:44Z'
+top_issues: []
+waiver: { active: false }
+quality_score: 100
+evidence:
+  tests_reviewed: 51
+  risks_identified: 2
+  trace: { ac_covered: [1, 2, 3, 4, 5, 6, 7], ac_gaps: [] }
+nfr_validation:
+  security: { status: PASS, notes: 'Entrada continua renderizada por textContent e datas/prioridades são validadas.' }
+  performance: { status: PASS, notes: 'Migração linear e executada somente para schema V1 válido.' }
+  reliability: { status: PASS, notes: 'XP, recompensa e estado são preservados; corrupção integral continua rejeitada.' }
+  maintainability: { status: PASS, notes: 'Schema 2 e migração estão centralizados no domínio/storage.' }
+  accessibility: { status: PASS, notes: 'Prioridade, prazo e atraso possuem rótulos e texto explícito.' }
+recommendations:
+  immediate: []
+  future:
+    - action: 'Reavaliar limite de crescimento do LocalStorage caso o uso deixe de ser pessoal.'
+      refs: ['docs/PRD-V2.md']
+review_notes:
+  coderabbit: 'Não executado e não bloqueante: WSL/CLI indisponível nesta máquina.'

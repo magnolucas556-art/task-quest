@@ -21,10 +21,17 @@ Evoluir a aplicação estática aprovada para incluir planejamento temporal, pri
 
 ## Definition of Done
 
-- [ ] Stories 2.1–2.4 implementadas e revisáveis.
-- [ ] Dados V1 migrados sem perda.
-- [ ] 14 critérios de aceite V2 rastreados.
-- [ ] Fluxos V1 sem regressão.
-- [ ] Responsividade e acessibilidade básica validadas.
-- [ ] Todos os quality gates aprovados.
-- [ ] Commits locais claros, sem merge ou push.
+- [x] Stories 2.1–2.4 implementadas e revisadas.
+- [x] Dados V1 migrados sem perda.
+- [x] 14 critérios de aceite V2 rastreados.
+- [x] Fluxos V1 sem regressão.
+- [x] Responsividade e acessibilidade básica validadas.
+- [x] Todos os quality gates aprovados.
+- [x] Commits locais claros, sem merge ou push.
+
+## Fechamento administrativo
+
+- Story 2.1 concluída com gate de QA `PASS`; status `Done` preservado. [closure-key: 2.1:commit:c8f226870d7846c5f301fde71f7a6094641c4287]
+- Story 2.2 concluída com gate de QA `PASS`; status `Done` preservado. [closure-key: 2.2:commit:c8f226870d7846c5f301fde71f7a6094641c4287]
+- Story 2.3 concluída com gate de QA `PASS`; status `Done` preservado. [closure-key: 2.3:commit:c8f226870d7846c5f301fde71f7a6094641c4287]
+- Story 2.4 concluída com gate de QA `PASS`; status `Done` preservado. [closure-key: 2.4:commit:c8f226870d7846c5f301fde71f7a6094641c4287]

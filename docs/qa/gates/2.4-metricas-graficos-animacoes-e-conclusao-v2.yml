@@ -1,0 +1,30 @@
+schema: 1
+story: '2.4'
+story_title: 'Métricas, gráficos, animações e conclusão V2'
+gate: PASS
+status_reason: 'Os oito critérios e a regressão V1 foram aprovados com 51 testes, gates verdes, console limpo e gráficos com equivalentes textuais.'
+reviewer: 'Quinn (Test Architect)'
+reviewed_revision: 'commit:c8f226870d7846c5f301fde71f7a6094641c4287'
+updated: '2026-09-14T19:02:44Z'
+expires: '2026-09-28T19:02:44Z'
+top_issues: []
+waiver: { active: false }
+quality_score: 100
+evidence:
+  tests_reviewed: 51
+  risks_identified: 1
+  trace: { ac_covered: [1, 2, 3, 4, 5, 6, 7, 8], ac_gaps: [] }
+  quality_gates: { lint: PASS, typecheck: PASS, test: PASS, build: PASS, validate_port_denylist: PASS, npm_audit: PASS, browser_console: PASS }
+nfr_validation:
+  security: { status: PASS, notes: 'Zero vulnerabilidades conhecidas e nenhuma transmissão externa.' }
+  performance: { status: PASS, notes: 'Métricas e gráficos são derivados linearmente, sem persistência duplicada.' }
+  reliability: { status: PASS, notes: 'Regressão V1 e atualização imediata das métricas foram verificadas.' }
+  maintainability: { status: PASS, notes: 'Analytics e charts são módulos puros, pequenos e cobertos.' }
+  accessibility: { status: PASS, notes: 'Valores, descrições e aria-labels equivalem às barras; movimento reduzido é respeitado.' }
+recommendations:
+  immediate: []
+  future:
+    - action: 'Considerar testes DOM automatizados somente se a interface aumentar de complexidade.'
+      refs: ['docs/TESTS-V2.md']
+review_notes:
+  coderabbit: 'Não executado e não bloqueante: WSL/CLI indisponível nesta máquina.'

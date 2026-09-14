@@ -1,0 +1,29 @@
+schema: 1
+story: '2.1'
+story_title: 'Redesign visual e tema claro/escuro'
+gate: PASS
+status_reason: 'Os seis critérios foram validados com testes automatizados e inspeção responsiva; tema, foco, feedbacks e deploy estático permanecem íntegros.'
+reviewer: 'Quinn (Test Architect)'
+reviewed_revision: 'commit:c8f226870d7846c5f301fde71f7a6094641c4287'
+updated: '2026-09-14T19:02:44Z'
+expires: '2026-09-28T19:02:44Z'
+top_issues: []
+waiver: { active: false }
+quality_score: 100
+evidence:
+  tests_reviewed: 51
+  risks_identified: 1
+  trace: { ac_covered: [1, 2, 3, 4, 5, 6], ac_gaps: [] }
+nfr_validation:
+  security: { status: PASS, notes: 'Preferência de tema contém apenas valor enumerado e falha com segurança.' }
+  performance: { status: PASS, notes: 'CSS e módulo pequeno, sem biblioteca ou recurso remoto.' }
+  reliability: { status: PASS, notes: 'Storage indisponível não impede alternância durante a sessão.' }
+  maintainability: { status: PASS, notes: 'Tema isolado em módulo simples e testável.' }
+  accessibility: { status: PASS, notes: 'Controle nomeado, foco visível e movimento reduzido foram preservados.' }
+recommendations:
+  immediate: []
+  future:
+    - action: 'Ampliar regressão visual entre navegadores apenas se o projeto crescer.'
+      refs: ['docs/TESTS-V2.md']
+review_notes:
+  coderabbit: 'Não executado e não bloqueante: WSL/CLI indisponível nesta máquina.'
