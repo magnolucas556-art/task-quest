@@ -10,7 +10,10 @@ export function createUi(documentRef) {
 
   elements.taskForm.addEventListener("submit", (event) => {
     event.preventDefault();
-    handlers?.create(elements.taskText.value);
+    handlers?.create(elements.taskText.value, {
+      priority: elements.taskPriority.value,
+      dueDate: elements.taskDueDate.value,
+    });
   });
 
   elements.themeToggle.addEventListener("click", () => handlers?.toggleTheme());
@@ -50,8 +53,13 @@ export function createUi(documentRef) {
 
     const taskId = form.dataset.taskId;
     const input = form.elements.namedItem("editText");
-    if (taskId && input instanceof globalThis.HTMLInputElement) {
-      handlers.saveEdit(taskId, input.value);
+    const priority = form.elements.namedItem("editPriority");
+    const dueDate = form.elements.namedItem("editDueDate");
+    if (taskId && input instanceof globalThis.HTMLInputElement && priority && dueDate instanceof globalThis.HTMLInputElement) {
+      handlers.saveEdit(taskId, input.value, {
+        priority: /** @type {HTMLSelectElement} */ (priority).value,
+        dueDate: dueDate.value,
+      });
     }
   });
 
@@ -70,6 +78,8 @@ export function createUi(documentRef) {
 
     clearCreateInput() {
       elements.taskText.value = "";
+      elements.taskPriority.value = "medium";
+      elements.taskDueDate.value = "";
     },
 
     focusCreateInput() {
@@ -120,6 +130,8 @@ function getRequiredElements(documentRef) {
     operationFeedback: requiredElement(documentRef, "operation-feedback"),
     taskForm: requiredElement(documentRef, "task-form"),
     taskText: /** @type {HTMLInputElement} */ (requiredElement(documentRef, "task-text")),
+    taskPriority: /** @type {HTMLSelectElement} */ (requiredElement(documentRef, "task-priority")),
+    taskDueDate: /** @type {HTMLInputElement} */ (requiredElement(documentRef, "task-due-date")),
     taskError: requiredElement(documentRef, "task-error"),
     taskCount: requiredElement(documentRef, "task-count"),
     emptyState: requiredElement(documentRef, "empty-state"),
@@ -189,7 +201,24 @@ function createTaskItem(documentRef, task) {
 
   const status = documentRef.createElement("span");
   status.className = "task-status";
-  status.textContent = task.completed ? "Concluída" : "Pendente";
+  const overdue = !task.completed && task.dueDate !== null && task.dueDate < localTodayIso();
+  status.textContent = task.completed ? "Concluída" : overdue ? "Atrasada" : "Pendente";
+  if (overdue) {
+    item.dataset.overdue = "true";
+  }
+
+  const metadata = documentRef.createElement("div");
+  metadata.className = "task-metadata";
+  const priority = documentRef.createElement("span");
+  priority.className = `priority-badge priority-badge--${task.priority}`;
+  priority.textContent = `Prioridade ${priorityLabel(task.priority)}`;
+  metadata.append(priority);
+  if (task.dueDate) {
+    const dueDate = documentRef.createElement("time");
+    dueDate.dateTime = task.dueDate;
+    dueDate.textContent = `Prazo ${formatDate(task.dueDate)}`;
+    metadata.append(dueDate);
+  }
 
   const actions = documentRef.createElement("div");
   actions.className = "task-actions";
@@ -201,7 +230,7 @@ function createTaskItem(documentRef, task) {
     createActionButton(documentRef, task, "delete", "Excluir"),
   );
 
-  item.append(text, status, actions);
+  item.append(text, status, metadata, actions);
   return item;
 }
 
@@ -243,6 +272,29 @@ function createEditingTask(documentRef, task, editError) {
   actions.append(save, createActionButton(documentRef, task, "cancel-edit", "Cancelar"));
 
   form.append(label, input, error, actions);
+  const fields = documentRef.createElement("div");
+  fields.className = "task-metadata-fields";
+  const priorityLabelElement = documentRef.createElement("label");
+  priorityLabelElement.textContent = "Prioridade";
+  const priority = documentRef.createElement("select");
+  priority.name = "editPriority";
+  for (const [value, text] of [["low", "Baixa"], ["medium", "Média"], ["high", "Alta"]]) {
+    const option = documentRef.createElement("option");
+    option.value = value;
+    option.textContent = text;
+    option.selected = task.priority === value;
+    priority.append(option);
+  }
+  priorityLabelElement.append(priority);
+  const dateLabel = documentRef.createElement("label");
+  dateLabel.textContent = "Prazo (opcional)";
+  const dueDate = documentRef.createElement("input");
+  dueDate.name = "editDueDate";
+  dueDate.type = "date";
+  dueDate.value = task.dueDate ?? "";
+  dateLabel.append(dueDate);
+  fields.append(priorityLabelElement, dateLabel);
+  form.insertBefore(fields, error);
   item.append(form);
   return item;
 }
@@ -303,11 +355,31 @@ function setMessage(element, message) {
   element.hidden = !message;
 }
 
+/** @param {string} priority */
+function priorityLabel(priority) {
+  return ({ low: "baixa", medium: "média", high: "alta" })[priority] ?? priority;
+}
+
+/** @param {string} isoDate */
+function formatDate(isoDate) {
+  const [year, month, day] = isoDate.split("-");
+  return `${day}/${month}/${year}`;
+}
+
+function localTodayIso() {
+  const now = new Date();
+  const offset = now.getTimezoneOffset() * 60_000;
+  return new Date(now.getTime() - offset).toISOString().slice(0, 10);
+}
+
 /**
  * @typedef {object} Task
  * @property {string} id
  * @property {string} text
  * @property {boolean} completed
+ * @property {boolean} xpAwarded
+ * @property {"low"|"medium"|"high"} priority
+ * @property {string|null} dueDate
  */
 
 /**
@@ -319,10 +391,10 @@ function setMessage(element, message) {
 /**
  * @typedef {object} UiHandlers
  * @property {() => void} toggleTheme
- * @property {(text: string) => void} create
+ * @property {(text: string, details: {priority:string,dueDate:string}) => void} create
  * @property {(taskId: string) => void} beginEdit
  * @property {(taskId: string) => void} cancelEdit
- * @property {(taskId: string, text: string) => void} saveEdit
+ * @property {(taskId: string, text: string, details: {priority:string,dueDate:string}) => void} saveEdit
  * @property {(taskId: string, focusTarget: FocusTarget) => void} delete
  * @property {(taskId: string) => void} complete
  * @property {(taskId: string) => void} reopen

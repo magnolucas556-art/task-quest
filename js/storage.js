@@ -1,4 +1,4 @@
-import { createInitialState, validateState } from "./domain.js";
+import { createInitialState, migrateState, validateState } from "./domain.js";
 
 export const STORAGE_KEY = "taskQuest.state";
 
@@ -9,6 +9,7 @@ export const STORAGE_STATUS = Object.freeze({
   UNAVAILABLE: "UNAVAILABLE",
   READ_FAILURE: "READ_FAILURE",
   WRITE_FAILURE: "WRITE_FAILURE",
+  MIGRATED: "MIGRATED",
 });
 
 /** @typedef {ReturnType<typeof createInitialState>} AppState */
@@ -49,17 +50,27 @@ export function loadState(storageOverride) {
     return loadFallback(STORAGE_STATUS.INVALID);
   }
 
+  let migration;
   try {
-    if (!validateState(candidate).valid) {
+    migration = migrateState(candidate);
+    if (!migration.valid) {
       return loadFallback(STORAGE_STATUS.INVALID);
     }
   } catch {
     return loadFallback(STORAGE_STATUS.INVALID);
   }
 
+  if (migration.migrated) {
+    try {
+      resolved.storage.setItem(STORAGE_KEY, JSON.stringify(migration.state));
+    } catch {
+      return { status: STORAGE_STATUS.WRITE_FAILURE, state: migration.state, persisted: false };
+    }
+  }
+
   return {
-    status: STORAGE_STATUS.SUCCESS,
-    state: /** @type {AppState} */ (candidate),
+    status: migration.migrated ? STORAGE_STATUS.MIGRATED : STORAGE_STATUS.SUCCESS,
+    state: migration.state,
     persisted: true,
   };
 }

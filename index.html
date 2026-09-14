@@ -51,11 +51,13 @@
         <p class="eyebrow">Nova missão</p><h2 id="creator-title">Cadastrar tarefa</h2>
         <form id="task-form" novalidate>
           <label for="task-text">O que você precisa realizar?</label>
-          <div class="creator-controls">
-            <input id="task-text" name="taskText" type="text" autocomplete="off" placeholder="Ex.: revisar conteúdo da prova" aria-describedby="task-error" required />
-            <button class="button button--primary" type="submit">Adicionar tarefa</button>
+          <input id="task-text" name="taskText" type="text" autocomplete="off" placeholder="Ex.: revisar conteúdo da prova" aria-describedby="task-error" required />
+          <div class="task-metadata-fields">
+            <div><label for="task-priority">Prioridade</label><select id="task-priority" name="taskPriority"><option value="low">Baixa</option><option value="medium" selected>Média</option><option value="high">Alta</option></select></div>
+            <div><label for="task-due-date">Prazo <span class="optional-label">(opcional)</span></label><input id="task-due-date" name="taskDueDate" type="date" /></div>
           </div>
           <p id="task-error" class="field-error" hidden></p>
+          <button class="button button--primary creator-submit" type="submit">Adicionar tarefa</button>
         </form>
       </section>
 

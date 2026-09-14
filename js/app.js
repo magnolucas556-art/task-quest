@@ -60,17 +60,17 @@ export function getAppSnapshot() {
 /**
  * @param {unknown} text
  */
-export function createTask(text) {
+export function createTask(text, details = {}) {
   const id = createUniqueTaskId();
-  return applyOperation(createDomainTask(currentState, id, text));
+  return applyOperation(createDomainTask(currentState, id, text, details));
 }
 
 /**
  * @param {unknown} id
  * @param {unknown} text
  */
-export function editTask(id, text) {
-  const operation = editDomainTask(currentState, id, text);
+export function editTask(id, text, details = {}) {
+  const operation = editDomainTask(currentState, id, text, details);
   if (operation.changed) {
     sessionContext.editingTaskId = null;
   }
@@ -216,8 +216,8 @@ function initializeBrowserApp() {
         : "Tema alterado somente para esta sessão.";
       render();
     },
-    create(text) {
-      const result = createTask(text);
+    create(text, details) {
+      const result = createTask(text, details);
       createError = result.error === DOMAIN_ERRORS.INVALID_TASK_TEXT ? invalidTaskMessage() : null;
       feedback = result.changed ? "Tarefa criada." : null;
       render();
@@ -242,8 +242,8 @@ function initializeBrowserApp() {
       render();
       ui.focusPrimaryTaskAction(taskId);
     },
-    saveEdit(taskId, text) {
-      const result = editTask(taskId, text);
+    saveEdit(taskId, text, details) {
+      const result = editTask(taskId, text, details);
       editError = result.error === DOMAIN_ERRORS.INVALID_TASK_TEXT ? invalidTaskMessage() : null;
       feedback = result.changed ? "Tarefa editada." : null;
       render();
@@ -301,6 +301,9 @@ function getStorageMessage(context) {
   }
   if (context.recoveredFromInvalidData) {
     return "Os dados salvos estavam inválidos. A aplicação iniciou com um estado seguro.";
+  }
+  if (context.initializationStatus === STORAGE_STATUS.MIGRATED) {
+    return "Seus dados da versão anterior foram atualizados com segurança.";
   }
   return null;
 }
