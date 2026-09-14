@@ -9,6 +9,8 @@ import {
   reopenTask as reopenDomainTask,
 } from "./domain.js";
 import { buildCalendarMonth, getInitialMonth, shiftMonth } from "./calendar.js";
+import { getTaskMetrics } from "./analytics.js";
+import { buildChartSeries } from "./charts.js";
 import { STORAGE_STATUS, loadState, saveState } from "./storage.js";
 import { createThemeController } from "./theme.js";
 import { createUi } from "./ui.js";
@@ -200,6 +202,7 @@ function initializeBrowserApp() {
     if (!gamification.valid) {
       return;
     }
+    const metrics = getTaskMetrics(snapshot.state.tasks, localTodayIso());
     ui.render({
       ...snapshot,
       gamification,
@@ -210,6 +213,8 @@ function initializeBrowserApp() {
       editError,
       activeView,
       calendar: buildCalendarMonth(snapshot.state.tasks, calendarCursor, localTodayIso()),
+      metrics,
+      charts: buildChartSeries(metrics),
     });
   }
 

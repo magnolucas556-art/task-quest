@@ -25,6 +25,7 @@
       <nav id="view-nav" class="view-nav" aria-label="Visões do Task Quest">
         <button type="button" data-view="tasks" aria-current="page">Tarefas</button>
         <button type="button" data-view="calendar">Calendário</button>
+        <button type="button" data-view="insights">Visão geral</button>
       </nav>
       <section class="hero" aria-labelledby="hero-title">
         <div><p class="eyebrow">Painel de aventura</p><h2 id="hero-title">Transforme planos em progresso.</h2><p>Organize o que importa, conclua missões e acompanhe sua evolução.</p></div>
@@ -87,6 +88,17 @@
         <div class="calendar-weekdays" aria-hidden="true"><span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span></div>
         <ol id="calendar-grid" class="calendar-grid" aria-label="Tarefas por data"></ol>
         <p id="calendar-empty" class="calendar-empty">Nenhuma tarefa com prazo neste mês.</p>
+      </section>
+
+      <section id="insights-panel" class="insights-panel" aria-labelledby="insights-title" hidden>
+        <div class="insights-heading"><p class="eyebrow">Estatísticas</p><h2 id="insights-title">Visão geral</h2><p>Um retrato simples da sua jornada atual.</p></div>
+        <div class="metric-grid">
+          <article class="metric-card"><span>Total</span><strong id="metric-total">0</strong><small>tarefas cadastradas</small></article>
+          <article class="metric-card"><span>Concluídas</span><strong id="metric-completed">0</strong><small id="metric-rate">0% do total</small></article>
+          <article class="metric-card"><span>Pendentes</span><strong id="metric-pending">0</strong><small id="metric-today">0 para hoje</small></article>
+          <article class="metric-card"><span>Atrasadas</span><strong id="metric-overdue">0</strong><small>requerem atenção</small></article>
+        </div>
+        <div id="charts" class="charts"></div>
       </section>
     </main>
     <footer class="page-footer"><p>Task Quest · progresso salvo localmente</p></footer>

@@ -84,6 +84,7 @@ export function createUi(documentRef) {
       renderMessages(elements, viewModel);
       renderTasks(documentRef, elements, viewModel);
       renderCalendar(documentRef, elements, viewModel);
+      renderInsights(documentRef, elements, viewModel);
       renderActiveView(elements, viewModel.activeView);
     },
 
@@ -157,6 +158,14 @@ function getRequiredElements(documentRef) {
     calendarLabel: requiredElement(documentRef, "calendar-label"),
     calendarGrid: requiredElement(documentRef, "calendar-grid"),
     calendarEmpty: requiredElement(documentRef, "calendar-empty"),
+    insightsPanel: requiredElement(documentRef, "insights-panel"),
+    metricTotal: requiredElement(documentRef, "metric-total"),
+    metricCompleted: requiredElement(documentRef, "metric-completed"),
+    metricRate: requiredElement(documentRef, "metric-rate"),
+    metricPending: requiredElement(documentRef, "metric-pending"),
+    metricToday: requiredElement(documentRef, "metric-today"),
+    metricOverdue: requiredElement(documentRef, "metric-overdue"),
+    charts: requiredElement(documentRef, "charts"),
   };
 }
 
@@ -244,13 +253,57 @@ function renderCalendar(documentRef, elements, viewModel) {
 /** @param {ReturnType<typeof getRequiredElements>} elements @param {string} activeView */
 function renderActiveView(elements, activeView) {
   const calendarActive = activeView === "calendar";
-  elements.taskCreator.hidden = calendarActive;
-  elements.taskListSection.hidden = calendarActive;
+  const insightsActive = activeView === "insights";
+  elements.taskCreator.hidden = calendarActive || insightsActive;
+  elements.taskListSection.hidden = calendarActive || insightsActive;
   elements.calendarPanel.hidden = !calendarActive;
+  elements.insightsPanel.hidden = !insightsActive;
   for (const button of elements.viewNav.querySelectorAll("button[data-view]")) {
     if (button.getAttribute("data-view") === activeView) { button.setAttribute("aria-current", "page"); }
     else { button.removeAttribute("aria-current"); }
   }
+}
+
+/** @param {Document} documentRef @param {ReturnType<typeof getRequiredElements>} elements @param {ViewModel} viewModel */
+function renderInsights(documentRef, elements, viewModel) {
+  const metrics = viewModel.metrics;
+  elements.metricTotal.textContent = String(metrics.total);
+  elements.metricCompleted.textContent = String(metrics.completed);
+  elements.metricRate.textContent = `${metrics.completionRate}% do total`;
+  elements.metricPending.textContent = String(metrics.pending);
+  elements.metricToday.textContent = `${metrics.dueToday} para hoje`;
+  elements.metricOverdue.textContent = String(metrics.overdue);
+  elements.charts.replaceChildren(...viewModel.charts.map((chart) => {
+    const figure = documentRef.createElement("figure");
+    figure.className = "chart-card card";
+    const caption = documentRef.createElement("figcaption");
+    caption.textContent = chart.title;
+    const description = documentRef.createElement("p");
+    description.className = "chart-description";
+    description.textContent = chart.description;
+    const bars = documentRef.createElement("div");
+    bars.className = "bar-chart";
+    for (const item of chart.items) {
+      const row = documentRef.createElement("div");
+      row.className = "bar-row";
+      const label = documentRef.createElement("span");
+      label.textContent = item.label;
+      const track = documentRef.createElement("div");
+      track.className = "bar-track";
+      track.setAttribute("role", "img");
+      track.setAttribute("aria-label", `${item.label}: ${item.value}`);
+      const bar = documentRef.createElement("span");
+      bar.className = `bar bar--${item.tone}`;
+      bar.style.inlineSize = `${Math.round((item.value / chart.max) * 100)}%`;
+      track.append(bar);
+      const value = documentRef.createElement("strong");
+      value.textContent = String(item.value);
+      row.append(label, track, value);
+      bars.append(row);
+    }
+    figure.append(caption, description, bars);
+    return figure;
+  }));
 }
 
 /** @param {Document} documentRef @param {Task} task */
@@ -475,4 +528,6 @@ function localTodayIso() {
  * @property {string | null} editError
  * @property {string} activeView
  * @property {{label:string,days:Array<{dateIso:string,day:number,inCurrentMonth:boolean,isToday:boolean,tasks:Task[]}>}} calendar
+ * @property {{total:number,completed:number,pending:number,overdue:number,dueToday:number,completionRate:number,pendingByPriority:{low:number,medium:number,high:number}}} metrics
+ * @property {Array<{title:string,description:string,max:number,items:Array<{label:string,value:number,tone:string}>}>} charts
  */

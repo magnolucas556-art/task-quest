@@ -1,14 +1,14 @@
 {
   "name": "task-quest",
-  "version": "1.0.0",
-  "description": "MVP acadêmico de gerenciamento de tarefas com gamificação",
+  "version": "2.0.0",
+  "description": "Task Quest V2: gerenciamento local de tarefas com gamificação",
   "private": true,
   "type": "module",
   "scripts": {
     "lint": "eslint js tests",
     "typecheck": "tsc -p tsconfig.json",
     "test": "node --test",
-    "build": "node --check js/domain.js && node --check js/storage.js && node --check js/theme.js && node --check js/calendar.js && node --check js/ui.js && node --check js/app.js && node --check tests/domain.test.js && node --check tests/storage.test.js && node --check tests/theme.test.js && node --check tests/calendar.test.js && node --check tests/app.test.js",
+    "build": "node --check js/domain.js && node --check js/storage.js && node --check js/theme.js && node --check js/calendar.js && node --check js/analytics.js && node --check js/charts.js && node --check js/ui.js && node --check js/app.js && node --check tests/domain.test.js && node --check tests/storage.test.js && node --check tests/theme.test.js && node --check tests/calendar.test.js && node --check tests/analytics.test.js && node --check tests/charts.test.js && node --check tests/app.test.js",
     "validate:port-denylist": "node -e \"const check=require('./.aiox-core/core/doctor/checks/port-denylist'); check.run({projectRoot:process.cwd()}).then(result=>{console.log(result.message); process.exitCode=result.status==='PASS'?0:1})\""
   },
   "devDependencies": {
