@@ -8,6 +8,7 @@ import {
   getGamification,
   reopenTask as reopenDomainTask,
 } from "./domain.js";
+import { buildCalendarMonth, getInitialMonth, shiftMonth } from "./calendar.js";
 import { STORAGE_STATUS, loadState, saveState } from "./storage.js";
 import { createThemeController } from "./theme.js";
 import { createUi } from "./ui.js";
@@ -190,6 +191,8 @@ function initializeBrowserApp() {
   let createError = null;
   /** @type {string | null} */
   let editError = null;
+  let activeView = "tasks";
+  let calendarCursor = getInitialMonth();
 
   function render() {
     const snapshot = getAppSnapshot();
@@ -205,6 +208,8 @@ function initializeBrowserApp() {
       storageMessage: getStorageMessage(snapshot.context),
       createError,
       editError,
+      activeView,
+      calendar: buildCalendarMonth(snapshot.state.tasks, calendarCursor, localTodayIso()),
     });
   }
 
@@ -214,6 +219,19 @@ function initializeBrowserApp() {
       feedback = result.persisted
         ? `Tema ${result.theme === "dark" ? "escuro" : "claro"} ativado.`
         : "Tema alterado somente para esta sessão.";
+      render();
+    },
+    showView(view) {
+      activeView = view;
+      feedback = null;
+      render();
+    },
+    changeMonth(delta) {
+      calendarCursor = shiftMonth(calendarCursor, delta);
+      render();
+    },
+    resetMonth() {
+      calendarCursor = getInitialMonth();
       render();
     },
     create(text, details) {
@@ -278,6 +296,11 @@ function initializeBrowserApp() {
 
   initializeApp();
   render();
+}
+
+function localTodayIso() {
+  const now = new Date();
+  return new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
 }
 
 function invalidTaskMessage() {

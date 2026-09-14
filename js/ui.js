@@ -17,6 +17,15 @@ export function createUi(documentRef) {
   });
 
   elements.themeToggle.addEventListener("click", () => handlers?.toggleTheme());
+  elements.viewNav.addEventListener("click", (event) => {
+    const target = event.target;
+    if (target instanceof globalThis.HTMLButtonElement && target.dataset.view && handlers) {
+      handlers.showView(target.dataset.view);
+    }
+  });
+  elements.calendarPrevious.addEventListener("click", () => handlers?.changeMonth(-1));
+  elements.calendarNext.addEventListener("click", () => handlers?.changeMonth(1));
+  elements.calendarToday.addEventListener("click", () => handlers?.resetMonth());
 
   elements.taskList.addEventListener("click", (event) => {
     const button = getActionButton(event.target);
@@ -74,6 +83,8 @@ export function createUi(documentRef) {
       renderProgress(elements, viewModel);
       renderMessages(elements, viewModel);
       renderTasks(documentRef, elements, viewModel);
+      renderCalendar(documentRef, elements, viewModel);
+      renderActiveView(elements, viewModel.activeView);
     },
 
     clearCreateInput() {
@@ -121,6 +132,7 @@ export function createUi(documentRef) {
 function getRequiredElements(documentRef) {
   return {
     themeToggle: requiredElement(documentRef, "theme-toggle"),
+    viewNav: requiredElement(documentRef, "view-nav"),
     currentLevel: requiredElement(documentRef, "current-level"),
     currentLevelVisual: requiredElement(documentRef, "current-level-visual"),
     totalXp: requiredElement(documentRef, "total-xp"),
@@ -136,6 +148,15 @@ function getRequiredElements(documentRef) {
     taskCount: requiredElement(documentRef, "task-count"),
     emptyState: requiredElement(documentRef, "empty-state"),
     taskList: requiredElement(documentRef, "task-list"),
+    taskCreator: /** @type {HTMLElement} */ (requiredElement(documentRef, "task-form").closest("section")),
+    taskListSection: /** @type {HTMLElement} */ (requiredElement(documentRef, "task-list").closest("section")),
+    calendarPanel: requiredElement(documentRef, "calendar-panel"),
+    calendarPrevious: requiredElement(documentRef, "calendar-previous"),
+    calendarNext: requiredElement(documentRef, "calendar-next"),
+    calendarToday: requiredElement(documentRef, "calendar-today"),
+    calendarLabel: requiredElement(documentRef, "calendar-label"),
+    calendarGrid: requiredElement(documentRef, "calendar-grid"),
+    calendarEmpty: requiredElement(documentRef, "calendar-empty"),
   };
 }
 
@@ -190,6 +211,46 @@ function renderTasks(documentRef, elements, viewModel) {
         : createTaskItem(documentRef, task),
     ),
   );
+}
+
+/** @param {Document} documentRef @param {ReturnType<typeof getRequiredElements>} elements @param {ViewModel} viewModel */
+function renderCalendar(documentRef, elements, viewModel) {
+  elements.calendarLabel.textContent = viewModel.calendar.label;
+  const tasksInMonth = viewModel.calendar.days.reduce((total, day) => total + (day.inCurrentMonth ? day.tasks.length : 0), 0);
+  elements.calendarEmpty.hidden = tasksInMonth > 0;
+  elements.calendarGrid.replaceChildren(...viewModel.calendar.days.map((day) => {
+    const cell = documentRef.createElement("li");
+    cell.className = "calendar-day";
+    cell.dataset.outside = String(!day.inCurrentMonth);
+    if (day.isToday) { cell.dataset.today = "true"; }
+    const date = documentRef.createElement("time");
+    date.dateTime = day.dateIso;
+    date.textContent = String(day.day);
+    if (day.isToday) { date.setAttribute("aria-label", `${day.day}, hoje`); }
+    const list = documentRef.createElement("ul");
+    for (const task of day.tasks) {
+      const item = documentRef.createElement("li");
+      item.className = `calendar-task calendar-task--${task.priority}`;
+      item.dataset.completed = String(task.completed);
+      item.textContent = task.text;
+      item.title = task.text;
+      list.append(item);
+    }
+    cell.append(date, list);
+    return cell;
+  }));
+}
+
+/** @param {ReturnType<typeof getRequiredElements>} elements @param {string} activeView */
+function renderActiveView(elements, activeView) {
+  const calendarActive = activeView === "calendar";
+  elements.taskCreator.hidden = calendarActive;
+  elements.taskListSection.hidden = calendarActive;
+  elements.calendarPanel.hidden = !calendarActive;
+  for (const button of elements.viewNav.querySelectorAll("button[data-view]")) {
+    if (button.getAttribute("data-view") === activeView) { button.setAttribute("aria-current", "page"); }
+    else { button.removeAttribute("aria-current"); }
+  }
 }
 
 /** @param {Document} documentRef @param {Task} task */
@@ -391,6 +452,9 @@ function localTodayIso() {
 /**
  * @typedef {object} UiHandlers
  * @property {() => void} toggleTheme
+ * @property {(view: string) => void} showView
+ * @property {(delta: number) => void} changeMonth
+ * @property {() => void} resetMonth
  * @property {(text: string, details: {priority:string,dueDate:string}) => void} create
  * @property {(taskId: string) => void} beginEdit
  * @property {(taskId: string) => void} cancelEdit
@@ -409,4 +473,6 @@ function localTodayIso() {
  * @property {string | null} storageMessage
  * @property {string | null} createError
  * @property {string | null} editError
+ * @property {string} activeView
+ * @property {{label:string,days:Array<{dateIso:string,day:number,inCurrentMonth:boolean,isToday:boolean,tasks:Task[]}>}} calendar
  */

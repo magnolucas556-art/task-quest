@@ -22,6 +22,10 @@
     </header>
 
     <main id="main-content" class="page-container app-layout">
+      <nav id="view-nav" class="view-nav" aria-label="Visões do Task Quest">
+        <button type="button" data-view="tasks" aria-current="page">Tarefas</button>
+        <button type="button" data-view="calendar">Calendário</button>
+      </nav>
       <section class="hero" aria-labelledby="hero-title">
         <div><p class="eyebrow">Painel de aventura</p><h2 id="hero-title">Transforme planos em progresso.</h2><p>Organize o que importa, conclua missões e acompanhe sua evolução.</p></div>
         <div class="level-orb" aria-hidden="true"><span id="current-level-visual">1</span></div>
@@ -68,6 +72,21 @@
         </div>
         <p id="empty-state" class="empty-state"><span class="empty-icon" aria-hidden="true">✓</span>Sua lista está vazia. Cadastre a primeira tarefa para começar.</p>
         <ul id="task-list" class="task-list"></ul>
+      </section>
+
+      <section id="calendar-panel" class="calendar-panel card" aria-labelledby="calendar-title" hidden>
+        <div class="calendar-heading">
+          <div><p class="eyebrow">Agenda mensal</p><h2 id="calendar-title">Calendário</h2></div>
+          <div class="calendar-controls">
+            <button id="calendar-previous" type="button" aria-label="Mês anterior">←</button>
+            <strong id="calendar-label" aria-live="polite"></strong>
+            <button id="calendar-today" type="button">Hoje</button>
+            <button id="calendar-next" type="button" aria-label="Próximo mês">→</button>
+          </div>
+        </div>
+        <div class="calendar-weekdays" aria-hidden="true"><span>Dom</span><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span></div>
+        <ol id="calendar-grid" class="calendar-grid" aria-label="Tarefas por data"></ol>
+        <p id="calendar-empty" class="calendar-empty">Nenhuma tarefa com prazo neste mês.</p>
       </section>
     </main>
     <footer class="page-footer"><p>Task Quest · progresso salvo localmente</p></footer>
