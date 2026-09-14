@@ -13,6 +13,8 @@ export function createUi(documentRef) {
     handlers?.create(elements.taskText.value);
   });
 
+  elements.themeToggle.addEventListener("click", () => handlers?.toggleTheme());
+
   elements.taskList.addEventListener("click", (event) => {
     const button = getActionButton(event.target);
     if (!button || !handlers) {
@@ -108,7 +110,9 @@ export function createUi(documentRef) {
  */
 function getRequiredElements(documentRef) {
   return {
+    themeToggle: requiredElement(documentRef, "theme-toggle"),
     currentLevel: requiredElement(documentRef, "current-level"),
+    currentLevelVisual: requiredElement(documentRef, "current-level-visual"),
     totalXp: requiredElement(documentRef, "total-xp"),
     levelProgress: requiredElement(documentRef, "level-progress"),
     levelProgressText: requiredElement(documentRef, "level-progress-text"),
@@ -141,6 +145,7 @@ function renderProgress(elements, viewModel) {
   const { totalXp } = viewModel.state;
   const { level, progress } = viewModel.gamification;
   elements.currentLevel.textContent = String(level);
+  elements.currentLevelVisual.textContent = String(level);
   elements.totalXp.textContent = `${totalXp} XP`;
   elements.levelProgress.setAttribute("value", String(progress));
   elements.levelProgress.textContent = `${progress} de 100 XP`;
@@ -313,6 +318,7 @@ function setMessage(element, message) {
 
 /**
  * @typedef {object} UiHandlers
+ * @property {() => void} toggleTheme
  * @property {(text: string) => void} create
  * @property {(taskId: string) => void} beginEdit
  * @property {(taskId: string) => void} cancelEdit

@@ -9,6 +9,7 @@ import {
   reopenTask as reopenDomainTask,
 } from "./domain.js";
 import { STORAGE_STATUS, loadState, saveState } from "./storage.js";
+import { createThemeController } from "./theme.js";
 import { createUi } from "./ui.js";
 
 /** @typedef {ReturnType<typeof createInitialState>} AppState */
@@ -178,6 +179,11 @@ function getSessionContext() {
 
 function initializeBrowserApp() {
   const ui = createUi(globalThis.document);
+  const theme = createThemeController(
+    globalThis.document,
+    globalThis.localStorage,
+    globalThis.matchMedia?.("(prefers-color-scheme: dark)"),
+  );
   /** @type {string | null} */
   let feedback = null;
   /** @type {string | null} */
@@ -203,6 +209,13 @@ function initializeBrowserApp() {
   }
 
   ui.bindHandlers({
+    toggleTheme() {
+      const result = theme.toggle();
+      feedback = result.persisted
+        ? `Tema ${result.theme === "dark" ? "escuro" : "claro"} ativado.`
+        : "Tema alterado somente para esta sessão.";
+      render();
+    },
     create(text) {
       const result = createTask(text);
       createError = result.error === DOMAIN_ERRORS.INVALID_TASK_TEXT ? invalidTaskMessage() : null;
