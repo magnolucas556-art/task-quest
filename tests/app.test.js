@@ -45,11 +45,11 @@ function createStorage(initialState = null) {
 
 function pendingTasksState() {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     totalXp: 0,
     tasks: [
-      { id: "task-1", text: "Primeira", completed: false, xpAwarded: false },
-      { id: "task-2", text: "Segunda", completed: false, xpAwarded: false },
+      { id: "task-1", text: "Primeira", completed: false, xpAwarded: false, priority: "medium", dueDate: null },
+      { id: "task-2", text: "Segunda", completed: false, xpAwarded: false, priority: "medium", dueDate: null },
     ],
   };
 }
@@ -58,7 +58,7 @@ test("initializes first use without persisting automatically", () => {
   const storage = createStorage();
   const snapshot = initializeApp(storage);
 
-  assert.deepEqual(snapshot.state, { schemaVersion: 1, totalXp: 0, tasks: [] });
+  assert.deepEqual(snapshot.state, { schemaVersion: 2, totalXp: 0, tasks: [] });
   assert.equal(snapshot.context.initializationStatus, STORAGE_STATUS.MISSING);
   assert.equal(snapshot.context.firstUse, true);
   assert.equal(snapshot.context.volatile, false);
@@ -67,9 +67,9 @@ test("initializes first use without persisting automatically", () => {
 
 test("requests another browser UUID when the first value collides", () => {
   const state = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     totalXp: 0,
-    tasks: [{ id: "collision", text: "Existente", completed: false, xpAwarded: false }],
+    tasks: [{ id: "collision", text: "Existente", completed: false, xpAwarded: false, priority: "medium", dueDate: null }],
   };
   const storage = createStorage(state);
   const originalRandomUuid = globalThis.crypto.randomUUID;
@@ -178,7 +178,7 @@ test("distinguishes invalid recovery from an unavailable volatile session", () =
 
   assert.equal(recovered.context.recoveredFromInvalidData, true);
   assert.equal(recovered.context.volatile, false);
-  assert.deepEqual(recovered.state, { schemaVersion: 1, totalXp: 0, tasks: [] });
+  assert.deepEqual(recovered.state, { schemaVersion: 2, totalXp: 0, tasks: [] });
 
   const unavailable = initializeApp(null);
   assert.equal(unavailable.context.initializationStatus, STORAGE_STATUS.UNAVAILABLE);

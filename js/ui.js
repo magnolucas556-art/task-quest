@@ -10,8 +10,22 @@ export function createUi(documentRef) {
 
   elements.taskForm.addEventListener("submit", (event) => {
     event.preventDefault();
-    handlers?.create(elements.taskText.value);
+    handlers?.create(elements.taskText.value, {
+      priority: elements.taskPriority.value,
+      dueDate: elements.taskDueDate.value,
+    });
   });
+
+  elements.themeToggle.addEventListener("click", () => handlers?.toggleTheme());
+  elements.viewNav.addEventListener("click", (event) => {
+    const target = event.target;
+    if (target instanceof globalThis.HTMLButtonElement && target.dataset.view && handlers) {
+      handlers.showView(target.dataset.view);
+    }
+  });
+  elements.calendarPrevious.addEventListener("click", () => handlers?.changeMonth(-1));
+  elements.calendarNext.addEventListener("click", () => handlers?.changeMonth(1));
+  elements.calendarToday.addEventListener("click", () => handlers?.resetMonth());
 
   elements.taskList.addEventListener("click", (event) => {
     const button = getActionButton(event.target);
@@ -48,8 +62,13 @@ export function createUi(documentRef) {
 
     const taskId = form.dataset.taskId;
     const input = form.elements.namedItem("editText");
-    if (taskId && input instanceof globalThis.HTMLInputElement) {
-      handlers.saveEdit(taskId, input.value);
+    const priority = form.elements.namedItem("editPriority");
+    const dueDate = form.elements.namedItem("editDueDate");
+    if (taskId && input instanceof globalThis.HTMLInputElement && priority && dueDate instanceof globalThis.HTMLInputElement) {
+      handlers.saveEdit(taskId, input.value, {
+        priority: /** @type {HTMLSelectElement} */ (priority).value,
+        dueDate: dueDate.value,
+      });
     }
   });
 
@@ -64,10 +83,15 @@ export function createUi(documentRef) {
       renderProgress(elements, viewModel);
       renderMessages(elements, viewModel);
       renderTasks(documentRef, elements, viewModel);
+      renderCalendar(documentRef, elements, viewModel);
+      renderInsights(documentRef, elements, viewModel);
+      renderActiveView(elements, viewModel.activeView);
     },
 
     clearCreateInput() {
       elements.taskText.value = "";
+      elements.taskPriority.value = "medium";
+      elements.taskDueDate.value = "";
     },
 
     focusCreateInput() {
@@ -108,7 +132,10 @@ export function createUi(documentRef) {
  */
 function getRequiredElements(documentRef) {
   return {
+    themeToggle: requiredElement(documentRef, "theme-toggle"),
+    viewNav: requiredElement(documentRef, "view-nav"),
     currentLevel: requiredElement(documentRef, "current-level"),
+    currentLevelVisual: requiredElement(documentRef, "current-level-visual"),
     totalXp: requiredElement(documentRef, "total-xp"),
     levelProgress: requiredElement(documentRef, "level-progress"),
     levelProgressText: requiredElement(documentRef, "level-progress-text"),
@@ -116,10 +143,29 @@ function getRequiredElements(documentRef) {
     operationFeedback: requiredElement(documentRef, "operation-feedback"),
     taskForm: requiredElement(documentRef, "task-form"),
     taskText: /** @type {HTMLInputElement} */ (requiredElement(documentRef, "task-text")),
+    taskPriority: /** @type {HTMLSelectElement} */ (requiredElement(documentRef, "task-priority")),
+    taskDueDate: /** @type {HTMLInputElement} */ (requiredElement(documentRef, "task-due-date")),
     taskError: requiredElement(documentRef, "task-error"),
     taskCount: requiredElement(documentRef, "task-count"),
     emptyState: requiredElement(documentRef, "empty-state"),
     taskList: requiredElement(documentRef, "task-list"),
+    taskCreator: /** @type {HTMLElement} */ (requiredElement(documentRef, "task-form").closest("section")),
+    taskListSection: /** @type {HTMLElement} */ (requiredElement(documentRef, "task-list").closest("section")),
+    calendarPanel: requiredElement(documentRef, "calendar-panel"),
+    calendarPrevious: requiredElement(documentRef, "calendar-previous"),
+    calendarNext: requiredElement(documentRef, "calendar-next"),
+    calendarToday: requiredElement(documentRef, "calendar-today"),
+    calendarLabel: requiredElement(documentRef, "calendar-label"),
+    calendarGrid: requiredElement(documentRef, "calendar-grid"),
+    calendarEmpty: requiredElement(documentRef, "calendar-empty"),
+    insightsPanel: requiredElement(documentRef, "insights-panel"),
+    metricTotal: requiredElement(documentRef, "metric-total"),
+    metricCompleted: requiredElement(documentRef, "metric-completed"),
+    metricRate: requiredElement(documentRef, "metric-rate"),
+    metricPending: requiredElement(documentRef, "metric-pending"),
+    metricToday: requiredElement(documentRef, "metric-today"),
+    metricOverdue: requiredElement(documentRef, "metric-overdue"),
+    charts: requiredElement(documentRef, "charts"),
   };
 }
 
@@ -141,6 +187,7 @@ function renderProgress(elements, viewModel) {
   const { totalXp } = viewModel.state;
   const { level, progress } = viewModel.gamification;
   elements.currentLevel.textContent = String(level);
+  elements.currentLevelVisual.textContent = String(level);
   elements.totalXp.textContent = `${totalXp} XP`;
   elements.levelProgress.setAttribute("value", String(progress));
   elements.levelProgress.textContent = `${progress} de 100 XP`;
@@ -175,6 +222,90 @@ function renderTasks(documentRef, elements, viewModel) {
   );
 }
 
+/** @param {Document} documentRef @param {ReturnType<typeof getRequiredElements>} elements @param {ViewModel} viewModel */
+function renderCalendar(documentRef, elements, viewModel) {
+  elements.calendarLabel.textContent = viewModel.calendar.label;
+  const tasksInMonth = viewModel.calendar.days.reduce((total, day) => total + (day.inCurrentMonth ? day.tasks.length : 0), 0);
+  elements.calendarEmpty.hidden = tasksInMonth > 0;
+  elements.calendarGrid.replaceChildren(...viewModel.calendar.days.map((day) => {
+    const cell = documentRef.createElement("li");
+    cell.className = "calendar-day";
+    cell.dataset.outside = String(!day.inCurrentMonth);
+    if (day.isToday) { cell.dataset.today = "true"; }
+    const date = documentRef.createElement("time");
+    date.dateTime = day.dateIso;
+    date.textContent = String(day.day);
+    if (day.isToday) { date.setAttribute("aria-label", `${day.day}, hoje`); }
+    const list = documentRef.createElement("ul");
+    for (const task of day.tasks) {
+      const item = documentRef.createElement("li");
+      item.className = `calendar-task calendar-task--${task.priority}`;
+      item.dataset.completed = String(task.completed);
+      item.textContent = task.text;
+      item.title = task.text;
+      list.append(item);
+    }
+    cell.append(date, list);
+    return cell;
+  }));
+}
+
+/** @param {ReturnType<typeof getRequiredElements>} elements @param {string} activeView */
+function renderActiveView(elements, activeView) {
+  const calendarActive = activeView === "calendar";
+  const insightsActive = activeView === "insights";
+  elements.taskCreator.hidden = calendarActive || insightsActive;
+  elements.taskListSection.hidden = calendarActive || insightsActive;
+  elements.calendarPanel.hidden = !calendarActive;
+  elements.insightsPanel.hidden = !insightsActive;
+  for (const button of elements.viewNav.querySelectorAll("button[data-view]")) {
+    if (button.getAttribute("data-view") === activeView) { button.setAttribute("aria-current", "page"); }
+    else { button.removeAttribute("aria-current"); }
+  }
+}
+
+/** @param {Document} documentRef @param {ReturnType<typeof getRequiredElements>} elements @param {ViewModel} viewModel */
+function renderInsights(documentRef, elements, viewModel) {
+  const metrics = viewModel.metrics;
+  elements.metricTotal.textContent = String(metrics.total);
+  elements.metricCompleted.textContent = String(metrics.completed);
+  elements.metricRate.textContent = `${metrics.completionRate}% do total`;
+  elements.metricPending.textContent = String(metrics.pending);
+  elements.metricToday.textContent = `${metrics.dueToday} para hoje`;
+  elements.metricOverdue.textContent = String(metrics.overdue);
+  elements.charts.replaceChildren(...viewModel.charts.map((chart) => {
+    const figure = documentRef.createElement("figure");
+    figure.className = "chart-card card";
+    const caption = documentRef.createElement("figcaption");
+    caption.textContent = chart.title;
+    const description = documentRef.createElement("p");
+    description.className = "chart-description";
+    description.textContent = chart.description;
+    const bars = documentRef.createElement("div");
+    bars.className = "bar-chart";
+    for (const item of chart.items) {
+      const row = documentRef.createElement("div");
+      row.className = "bar-row";
+      const label = documentRef.createElement("span");
+      label.textContent = item.label;
+      const track = documentRef.createElement("div");
+      track.className = "bar-track";
+      track.setAttribute("role", "img");
+      track.setAttribute("aria-label", `${item.label}: ${item.value}`);
+      const bar = documentRef.createElement("span");
+      bar.className = `bar bar--${item.tone}`;
+      bar.style.inlineSize = `${Math.round((item.value / chart.max) * 100)}%`;
+      track.append(bar);
+      const value = documentRef.createElement("strong");
+      value.textContent = String(item.value);
+      row.append(label, track, value);
+      bars.append(row);
+    }
+    figure.append(caption, description, bars);
+    return figure;
+  }));
+}
+
 /** @param {Document} documentRef @param {Task} task */
 function createTaskItem(documentRef, task) {
   const item = createTaskContainer(documentRef, task);
@@ -184,7 +315,24 @@ function createTaskItem(documentRef, task) {
 
   const status = documentRef.createElement("span");
   status.className = "task-status";
-  status.textContent = task.completed ? "Concluída" : "Pendente";
+  const overdue = !task.completed && task.dueDate !== null && task.dueDate < localTodayIso();
+  status.textContent = task.completed ? "Concluída" : overdue ? "Atrasada" : "Pendente";
+  if (overdue) {
+    item.dataset.overdue = "true";
+  }
+
+  const metadata = documentRef.createElement("div");
+  metadata.className = "task-metadata";
+  const priority = documentRef.createElement("span");
+  priority.className = `priority-badge priority-badge--${task.priority}`;
+  priority.textContent = `Prioridade ${priorityLabel(task.priority)}`;
+  metadata.append(priority);
+  if (task.dueDate) {
+    const dueDate = documentRef.createElement("time");
+    dueDate.dateTime = task.dueDate;
+    dueDate.textContent = `Prazo ${formatDate(task.dueDate)}`;
+    metadata.append(dueDate);
+  }
 
   const actions = documentRef.createElement("div");
   actions.className = "task-actions";
@@ -196,7 +344,7 @@ function createTaskItem(documentRef, task) {
     createActionButton(documentRef, task, "delete", "Excluir"),
   );
 
-  item.append(text, status, actions);
+  item.append(text, status, metadata, actions);
   return item;
 }
 
@@ -238,6 +386,29 @@ function createEditingTask(documentRef, task, editError) {
   actions.append(save, createActionButton(documentRef, task, "cancel-edit", "Cancelar"));
 
   form.append(label, input, error, actions);
+  const fields = documentRef.createElement("div");
+  fields.className = "task-metadata-fields";
+  const priorityLabelElement = documentRef.createElement("label");
+  priorityLabelElement.textContent = "Prioridade";
+  const priority = documentRef.createElement("select");
+  priority.name = "editPriority";
+  for (const [value, text] of [["low", "Baixa"], ["medium", "Média"], ["high", "Alta"]]) {
+    const option = documentRef.createElement("option");
+    option.value = value;
+    option.textContent = text;
+    option.selected = task.priority === value;
+    priority.append(option);
+  }
+  priorityLabelElement.append(priority);
+  const dateLabel = documentRef.createElement("label");
+  dateLabel.textContent = "Prazo (opcional)";
+  const dueDate = documentRef.createElement("input");
+  dueDate.name = "editDueDate";
+  dueDate.type = "date";
+  dueDate.value = task.dueDate ?? "";
+  dateLabel.append(dueDate);
+  fields.append(priorityLabelElement, dateLabel);
+  form.insertBefore(fields, error);
   item.append(form);
   return item;
 }
@@ -298,11 +469,31 @@ function setMessage(element, message) {
   element.hidden = !message;
 }
 
+/** @param {string} priority */
+function priorityLabel(priority) {
+  return ({ low: "baixa", medium: "média", high: "alta" })[priority] ?? priority;
+}
+
+/** @param {string} isoDate */
+function formatDate(isoDate) {
+  const [year, month, day] = isoDate.split("-");
+  return `${day}/${month}/${year}`;
+}
+
+function localTodayIso() {
+  const now = new Date();
+  const offset = now.getTimezoneOffset() * 60_000;
+  return new Date(now.getTime() - offset).toISOString().slice(0, 10);
+}
+
 /**
  * @typedef {object} Task
  * @property {string} id
  * @property {string} text
  * @property {boolean} completed
+ * @property {boolean} xpAwarded
+ * @property {"low"|"medium"|"high"} priority
+ * @property {string|null} dueDate
  */
 
 /**
@@ -313,10 +504,14 @@ function setMessage(element, message) {
 
 /**
  * @typedef {object} UiHandlers
- * @property {(text: string) => void} create
+ * @property {() => void} toggleTheme
+ * @property {(view: string) => void} showView
+ * @property {(delta: number) => void} changeMonth
+ * @property {() => void} resetMonth
+ * @property {(text: string, details: {priority:string,dueDate:string}) => void} create
  * @property {(taskId: string) => void} beginEdit
  * @property {(taskId: string) => void} cancelEdit
- * @property {(taskId: string, text: string) => void} saveEdit
+ * @property {(taskId: string, text: string, details: {priority:string,dueDate:string}) => void} saveEdit
  * @property {(taskId: string, focusTarget: FocusTarget) => void} delete
  * @property {(taskId: string) => void} complete
  * @property {(taskId: string) => void} reopen
@@ -331,4 +526,8 @@ function setMessage(element, message) {
  * @property {string | null} storageMessage
  * @property {string | null} createError
  * @property {string | null} editError
+ * @property {string} activeView
+ * @property {{label:string,days:Array<{dateIso:string,day:number,inCurrentMonth:boolean,isToday:boolean,tasks:Task[]}>}} calendar
+ * @property {{total:number,completed:number,pending:number,overdue:number,dueToday:number,completionRate:number,pendingByPriority:{low:number,medium:number,high:number}}} metrics
+ * @property {Array<{title:string,description:string,max:number,items:Array<{label:string,value:number,tone:string}>}>} charts
  */

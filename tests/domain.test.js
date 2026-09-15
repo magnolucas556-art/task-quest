@@ -9,13 +9,14 @@ import {
   deleteTask,
   editTask,
   getGamification,
+  isTaskOverdue,
   reopenTask,
   validateState,
 } from "../js/domain.js";
 
 function stateWithTask(overrides = {}) {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     totalXp: 0,
     tasks: [
       {
@@ -23,6 +24,8 @@ function stateWithTask(overrides = {}) {
         text: "Estudar domínio",
         completed: false,
         xpAwarded: false,
+        priority: "medium",
+        dueDate: null,
         ...overrides,
       },
     ],
@@ -33,7 +36,7 @@ test("createInitialState returns independent safe states", () => {
   const first = createInitialState();
   const second = createInitialState();
 
-  assert.deepEqual(first, { schemaVersion: 1, totalXp: 0, tasks: [] });
+  assert.deepEqual(first, { schemaVersion: 2, totalXp: 0, tasks: [] });
   assert.deepEqual(second, first);
   assert.notStrictEqual(first, second);
   assert.notStrictEqual(first.tasks, second.tasks);
@@ -47,7 +50,7 @@ test("createTask trims text and creates a pending unrewarded task", () => {
   assert.equal(result.error, null);
   assert.equal(result.xpDelta, 0);
   assert.deepEqual(result.state.tasks, [
-    { id: "task-1", text: "Estudar JavaScript", completed: false, xpAwarded: false },
+    { id: "task-1", text: "Estudar JavaScript", completed: false, xpAwarded: false, priority: "medium", dueDate: null },
   ]);
   assert.deepEqual(initial, createInitialState());
   assert.notStrictEqual(result.state, initial);
@@ -82,6 +85,8 @@ test("editTask changes only text and preserves completion and reward", () => {
     text: "Conteúdo atualizado",
     completed: true,
     xpAwarded: true,
+    priority: "medium",
+    dueDate: null,
   });
   assert.equal(result.state.totalXp, 10);
   assert.equal(state.tasks[0].text, "Estudar domínio");
@@ -211,12 +216,12 @@ test("validateState rejects malformed app state and invalid XP", () => {
   const invalidStates = [
     null,
     {},
-    { schemaVersion: 2, totalXp: 0, tasks: [] },
-    { schemaVersion: 1, totalXp: -10, tasks: [] },
-    { schemaVersion: 1, totalXp: 5, tasks: [] },
-    { schemaVersion: 1, totalXp: 10.5, tasks: [] },
-    { schemaVersion: 1, totalXp: Number.MAX_SAFE_INTEGER + 1, tasks: [] },
-    { schemaVersion: 1, totalXp: 0, tasks: [], extra: true },
+    { schemaVersion: 3, totalXp: 0, tasks: [] },
+    { schemaVersion: 2, totalXp: -10, tasks: [] },
+    { schemaVersion: 2, totalXp: 5, tasks: [] },
+    { schemaVersion: 2, totalXp: 10.5, tasks: [] },
+    { schemaVersion: 2, totalXp: Number.MAX_SAFE_INTEGER + 1, tasks: [] },
+    { schemaVersion: 2, totalXp: 0, tasks: [], extra: true },
   ];
 
   for (const state of invalidStates) {
@@ -304,6 +309,8 @@ test("successful updates preserve references for untouched tasks", () => {
     text: "Tarefa intacta",
     completed: false,
     xpAwarded: false,
+    priority: "low",
+    dueDate: "2026-09-20",
   });
 
   const result = editTask(state, "task-1", "Texto alterado");
@@ -312,4 +319,38 @@ test("successful updates preserve references for untouched tasks", () => {
   assert.notStrictEqual(result.state.tasks, state.tasks);
   assert.notStrictEqual(result.state.tasks[0], state.tasks[0]);
   assert.strictEqual(result.state.tasks[1], state.tasks[1]);
+});
+
+test("creates and edits priority and optional due date without changing earned XP", () => {
+  const created = createTask(createInitialState(), "dated", "Entregar trabalho", {
+    priority: "high",
+    dueDate: "2026-09-30",
+  });
+  assert.equal(created.changed, true);
+  assert.equal(created.state.tasks[0].priority, "high");
+  assert.equal(created.state.tasks[0].dueDate, "2026-09-30");
+
+  const rewarded = completeTask(created.state, "dated").state;
+  const edited = editTask(rewarded, "dated", "Entregar projeto", {
+    priority: "low",
+    dueDate: "",
+  });
+  assert.equal(edited.state.tasks[0].priority, "low");
+  assert.equal(edited.state.tasks[0].dueDate, null);
+  assert.equal(edited.state.tasks[0].xpAwarded, true);
+  assert.equal(edited.state.totalXp, 10);
+});
+
+test("rejects unsupported priorities and impossible ISO dates", () => {
+  const state = createInitialState();
+  assert.equal(createTask(state, "a", "A", { priority: "urgent" }).error, DOMAIN_ERRORS.INVALID_PRIORITY);
+  assert.equal(createTask(state, "b", "B", { dueDate: "2026-02-30" }).error, DOMAIN_ERRORS.INVALID_DUE_DATE);
+  assert.equal(createTask(state, "c", "C", { dueDate: "30/09/2026" }).error, DOMAIN_ERRORS.INVALID_DUE_DATE);
+});
+
+test("identifies only pending tasks whose due date has passed", () => {
+  const task = createTask(createInitialState(), "dated", "Prazo", { dueDate: "2026-09-13" }).state.tasks[0];
+  assert.equal(isTaskOverdue(task, "2026-09-14"), true);
+  assert.equal(isTaskOverdue({ ...task, completed: true }, "2026-09-14"), false);
+  assert.equal(isTaskOverdue({ ...task, dueDate: "2026-09-14" }, "2026-09-14"), false);
 });

@@ -8,7 +8,11 @@ import {
   getGamification,
   reopenTask as reopenDomainTask,
 } from "./domain.js";
+import { buildCalendarMonth, getInitialMonth, shiftMonth } from "./calendar.js";
+import { getTaskMetrics } from "./analytics.js";
+import { buildChartSeries } from "./charts.js";
 import { STORAGE_STATUS, loadState, saveState } from "./storage.js";
+import { createThemeController } from "./theme.js";
 import { createUi } from "./ui.js";
 
 /** @typedef {ReturnType<typeof createInitialState>} AppState */
@@ -59,17 +63,17 @@ export function getAppSnapshot() {
 /**
  * @param {unknown} text
  */
-export function createTask(text) {
+export function createTask(text, details = {}) {
   const id = createUniqueTaskId();
-  return applyOperation(createDomainTask(currentState, id, text));
+  return applyOperation(createDomainTask(currentState, id, text, details));
 }
 
 /**
  * @param {unknown} id
  * @param {unknown} text
  */
-export function editTask(id, text) {
-  const operation = editDomainTask(currentState, id, text);
+export function editTask(id, text, details = {}) {
+  const operation = editDomainTask(currentState, id, text, details);
   if (operation.changed) {
     sessionContext.editingTaskId = null;
   }
@@ -178,12 +182,19 @@ function getSessionContext() {
 
 function initializeBrowserApp() {
   const ui = createUi(globalThis.document);
+  const theme = createThemeController(
+    globalThis.document,
+    globalThis.localStorage,
+    globalThis.matchMedia?.("(prefers-color-scheme: dark)"),
+  );
   /** @type {string | null} */
   let feedback = null;
   /** @type {string | null} */
   let createError = null;
   /** @type {string | null} */
   let editError = null;
+  let activeView = "tasks";
+  let calendarCursor = getInitialMonth();
 
   function render() {
     const snapshot = getAppSnapshot();
@@ -191,6 +202,7 @@ function initializeBrowserApp() {
     if (!gamification.valid) {
       return;
     }
+    const metrics = getTaskMetrics(snapshot.state.tasks, localTodayIso());
     ui.render({
       ...snapshot,
       gamification,
@@ -199,12 +211,36 @@ function initializeBrowserApp() {
       storageMessage: getStorageMessage(snapshot.context),
       createError,
       editError,
+      activeView,
+      calendar: buildCalendarMonth(snapshot.state.tasks, calendarCursor, localTodayIso()),
+      metrics,
+      charts: buildChartSeries(metrics),
     });
   }
 
   ui.bindHandlers({
-    create(text) {
-      const result = createTask(text);
+    toggleTheme() {
+      const result = theme.toggle();
+      feedback = result.persisted
+        ? `Tema ${result.theme === "dark" ? "escuro" : "claro"} ativado.`
+        : "Tema alterado somente para esta sessão.";
+      render();
+    },
+    showView(view) {
+      activeView = view;
+      feedback = null;
+      render();
+    },
+    changeMonth(delta) {
+      calendarCursor = shiftMonth(calendarCursor, delta);
+      render();
+    },
+    resetMonth() {
+      calendarCursor = getInitialMonth();
+      render();
+    },
+    create(text, details) {
+      const result = createTask(text, details);
       createError = result.error === DOMAIN_ERRORS.INVALID_TASK_TEXT ? invalidTaskMessage() : null;
       feedback = result.changed ? "Tarefa criada." : null;
       render();
@@ -229,8 +265,8 @@ function initializeBrowserApp() {
       render();
       ui.focusPrimaryTaskAction(taskId);
     },
-    saveEdit(taskId, text) {
-      const result = editTask(taskId, text);
+    saveEdit(taskId, text, details) {
+      const result = editTask(taskId, text, details);
       editError = result.error === DOMAIN_ERRORS.INVALID_TASK_TEXT ? invalidTaskMessage() : null;
       feedback = result.changed ? "Tarefa editada." : null;
       render();
@@ -267,6 +303,11 @@ function initializeBrowserApp() {
   render();
 }
 
+function localTodayIso() {
+  const now = new Date();
+  return new Date(now.getTime() - now.getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
+}
+
 function invalidTaskMessage() {
   return "A tarefa precisa possuir conteúdo válido antes de ser salva.";
 }
@@ -288,6 +329,9 @@ function getStorageMessage(context) {
   }
   if (context.recoveredFromInvalidData) {
     return "Os dados salvos estavam inválidos. A aplicação iniciou com um estado seguro.";
+  }
+  if (context.initializationStatus === STORAGE_STATUS.MIGRATED) {
+    return "Seus dados da versão anterior foram atualizados com segurança.";
   }
   return null;
 }

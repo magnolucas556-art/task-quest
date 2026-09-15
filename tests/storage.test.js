@@ -29,7 +29,7 @@ function createFakeStorage(initialValue = null) {
 
 function validState(overrides = {}) {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     totalXp: 10,
     tasks: [
       {
@@ -37,6 +37,8 @@ function validState(overrides = {}) {
         text: "Persistir tarefa",
         completed: true,
         xpAwarded: true,
+        priority: "high",
+        dueDate: "2026-09-20",
       },
     ],
     ...overrides,
@@ -83,7 +85,7 @@ test("rejects unreadable JSON and does not overwrite it", () => {
 test("rejects missing and unknown schema versions", () => {
   for (const state of [
     { totalXp: 0, tasks: [] },
-    { schemaVersion: 2, totalXp: 0, tasks: [] },
+    { schemaVersion: 99, totalXp: 0, tasks: [] },
   ]) {
     const storage = createFakeStorage(JSON.stringify(state));
     assert.equal(loadState(storage).status, STORAGE_STATUS.INVALID);
@@ -97,8 +99,8 @@ test("rejects malformed fields, invalid tasks and duplicate IDs as a whole", () 
   duplicate.tasks.push({ ...duplicate.tasks[0] });
 
   const invalidStates = [
-    { schemaVersion: 1, totalXp: 0 },
-    { schemaVersion: 1, totalXp: 0, tasks: "not-an-array" },
+    { schemaVersion: 2, totalXp: 0 },
+    { schemaVersion: 2, totalXp: 0, tasks: "not-an-array" },
     validState({ tasks: [{ ...validState().tasks[0], id: "" }] }),
     validState({ tasks: [{ ...validState().tasks[0], text: "   " }] }),
     validState({ tasks: [{ ...validState().tasks[0], completed: "yes" }] }),
@@ -120,7 +122,7 @@ test("rejects invalid XP and never recovers valid XP from invalid tasks", () => 
   const invalidXpValues = [-10, 5, 10.5, Number.MAX_SAFE_INTEGER + 1];
 
   for (const totalXp of invalidXpValues) {
-    const storage = createFakeStorage(JSON.stringify({ schemaVersion: 1, totalXp, tasks: [] }));
+    const storage = createFakeStorage(JSON.stringify({ schemaVersion: 2, totalXp, tasks: [] }));
     assert.equal(loadState(storage).status, STORAGE_STATUS.INVALID);
   }
 
@@ -136,7 +138,7 @@ test("rejects invalid XP and never recovers valid XP from invalid tasks", () => 
 
 test("rejects XP lower than represented rewards but accepts historical XP after deletion", () => {
   const inconsistent = validState({ totalXp: 0 });
-  const historical = { schemaVersion: 1, totalXp: 200, tasks: [] };
+  const historical = { schemaVersion: 2, totalXp: 200, tasks: [] };
 
   assert.equal(
     loadState(createFakeStorage(JSON.stringify(inconsistent))).status,
@@ -166,7 +168,7 @@ test("reports unavailable storage and protected read failures", () => {
 
 test("rejects invalid state before writing", () => {
   const storage = createFakeStorage();
-  const result = saveState({ schemaVersion: 1, totalXp: 5, tasks: [] }, storage);
+  const result = saveState({ schemaVersion: 2, totalXp: 5, tasks: [] }, storage);
 
   assert.deepEqual(result, { status: STORAGE_STATUS.INVALID, persisted: false });
   assert.equal(storage.writes, 0);
@@ -197,7 +199,7 @@ test("reports write failure and later persists the complete current state", () =
     totalXp: 20,
     tasks: [
       firstState.tasks[0],
-      { id: "task-2", text: "Estado mais recente", completed: true, xpAwarded: true },
+      { id: "task-2", text: "Estado mais recente", completed: true, xpAwarded: true, priority: "medium", dueDate: null },
     ],
   });
   shouldFail = false;
@@ -206,4 +208,26 @@ test("reports write failure and later persists the complete current state", () =
     persisted: true,
   });
   assert.deepEqual(JSON.parse(savedValue), currentState);
+});
+
+test("migrates a complete V1 document once while preserving XP and reward history", () => {
+  const legacy = {
+    schemaVersion: 1,
+    totalXp: 10,
+    tasks: [{ id: "legacy", text: "Tarefa antiga", completed: true, xpAwarded: true }],
+  };
+  const storage = createFakeStorage(JSON.stringify(legacy));
+  const loaded = loadState(storage);
+
+  assert.equal(loaded.status, STORAGE_STATUS.MIGRATED);
+  assert.equal(loaded.persisted, true);
+  assert.equal(loaded.state.schemaVersion, 2);
+  assert.deepEqual(loaded.state.tasks[0], {
+    ...legacy.tasks[0],
+    priority: "medium",
+    dueDate: null,
+  });
+  assert.equal(loaded.state.totalXp, 10);
+  assert.equal(storage.writes, 1);
+  assert.equal(loadState(storage).status, STORAGE_STATUS.SUCCESS);
 });
